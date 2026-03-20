@@ -1,0 +1,25 @@
+services:
+  rune-ide-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: rune-ide-dev:local
+    container_name: rune-ide-dev
+    restart: unless-stopped
+    environment:
+      PASSWORD: ${RUNE_DEV_PASSWORD:-rune-dev-password}
+    ports:
+      - "127.0.0.1:8484:8080"
+    volumes:
+      - "Z:/Coding:/home/coder/workspace"
+    command:
+      - --bind-addr
+      - 0.0.0.0:8080
+      - --auth
+      - password
+      - --app-name
+      - Rune IDE
+      - --welcome-text
+      - Welcome to Rune IDE
+      - --i18n
+      - /home/coder/customization/en.json

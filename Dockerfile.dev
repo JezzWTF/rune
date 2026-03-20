@@ -1,0 +1,11 @@
+FROM codercom/code-server:latest
+
+USER root
+
+COPY src/browser/pages/login.html /usr/lib/code-server/src/browser/pages/login.html
+COPY src/browser/pages/rune-theme.css /usr/lib/code-server/src/browser/pages/rune-theme.css
+COPY customization/i18n/en.json /home/coder/customization/en.json
+
+RUN chown coder:coder /home/coder/customization/en.json
+
+USER coder

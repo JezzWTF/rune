@@ -1,0 +1,7 @@
+{
+  "WELCOME": "Welcome to {{app}}",
+  "LOGIN_TITLE": "Sign in - {{app}}",
+  "LOGIN_BELOW": "Use your workspace password to continue.",
+  "PASSWORD_PLACEHOLDER": "Workspace password",
+  "SUBMIT": "Enter IDE"
+}

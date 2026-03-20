@@ -1,0 +1,52 @@
+:root {
+  --rune-font-heading: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+  --rune-font-body: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --rune-bg-light: radial-gradient(circle at 15% 20%, #f6efe5 0%, #e7f3f0 45%, #dde9f6 100%);
+  --rune-bg-dark: radial-gradient(circle at 15% 20%, #1f2330 0%, #16252b 45%, #1e1f37 100%);
+  --rune-text-light: #1b2430;
+  --rune-text-dark: #f2f5f7;
+  --rune-accent-light: #1f5b86;
+  --rune-accent-dark: #5ec2ff;
+}
+
+body {
+  background: var(--rune-bg-light);
+  background: light-dark(var(--rune-bg-light), var(--rune-bg-dark));
+  color: var(--rune-text-light);
+  color: light-dark(var(--rune-text-light), var(--rune-text-dark));
+  font-family: var(--rune-font-body);
+}
+
+.card-box {
+  border: 1px solid light-dark(rgba(31, 91, 134, 0.12), rgba(94, 194, 255, 0.2));
+  border-radius: 12px;
+}
+
+.card-box > .header > .main {
+  font-family: var(--rune-font-heading);
+  font-size: 1.65rem;
+  letter-spacing: 0.01em;
+}
+
+.card-box > .header > .sub {
+  line-height: 1.45;
+}
+
+.login-form > .field > .password {
+  border-radius: 10px;
+}
+
+.login-form > .field > .submit {
+  background-color: var(--rune-accent-light);
+  background-color: light-dark(var(--rune-accent-light), var(--rune-accent-dark));
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.login-form > .field > .submit:hover {
+  filter: brightness(1.08);
+}
+
+.login-form > .error {
+  color: #b91c1c;
+}
