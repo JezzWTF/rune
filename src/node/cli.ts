@@ -52,6 +52,7 @@ export interface UserProvidedCodeArgs {
   "disable-workspace-trust"?: boolean
   "disable-getting-started-override"?: boolean
   "disable-proxy"?: boolean
+  "reconnection-grace-time"?: string
   "session-socket"?: string
   "cookie-suffix"?: string
   "link-protection-trusted-domains"?: string[]
@@ -314,6 +315,12 @@ export const options: Options<Required<UserProvidedArgs>> = {
   "idle-timeout-seconds": {
     type: "number",
     description: "Timeout in seconds to wait before shutting down when idle.",
+  },
+  "reconnection-grace-time": {
+    type: "string",
+    description:
+      "Override the reconnection grace time in seconds. Clients who disconnect for longer than this duration will need to \n" +
+      "reload the window. Defaults to 10800 (3 hours).",
   },
 }
 
@@ -632,6 +639,10 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     args["github-auth"] = process.env.GITHUB_TOKEN
   }
 
+  if (process.env.CODE_SERVER_RECONNECTION_GRACE_TIME) {
+    args["reconnection-grace-time"] = process.env.CODE_SERVER_RECONNECTION_GRACE_TIME
+  }
+
   if (process.env.CODE_SERVER_IDLE_TIMEOUT_SECONDS) {
     if (isNaN(Number(process.env.CODE_SERVER_IDLE_TIMEOUT_SECONDS))) {
       logger.info("CODE_SERVER_IDLE_TIMEOUT_SECONDS must be a number")
@@ -666,9 +677,7 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   }
   args["proxy-domain"] = finalProxies
 
-  if (!args["app-name"]) {
-    args["app-name"] = "code-server"
-  }
+  args["app-name"] ??= process.env.CODE_SERVER_APP_NAME || "code-server"
 
   args._ = getResolvedPathsFromArgs(args)
 

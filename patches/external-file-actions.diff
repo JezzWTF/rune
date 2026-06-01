@@ -27,7 +27,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -303,6 +303,16 @@ export interface IWorkbenchConstructionO
+@@ -312,6 +312,16 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly userDataPath?: string
  
@@ -99,7 +99,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -107,6 +109,8 @@ export interface ServerParsedArgs {
+@@ -114,6 +116,8 @@ export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
  	'auth'?: string;
@@ -112,7 +112,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -370,6 +370,8 @@ export class WebClientServer {
+@@ -389,6 +389,8 @@ export class WebClientServer {
  			serverBasePath: basePath,
  			webviewEndpoint: staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,
@@ -166,8 +166,8 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  import { AutoSaveAfterShortDelayContext } from '../../../services/filesConfiguration/common/filesConfigurationService.js';
  import { WorkbenchListDoubleSelection } from '../../../../platform/list/browser/listService.js';
  import { Schemas } from '../../../../base/common/network.js';
--import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
-+import { IsEnabledFileDownloads, IsEnabledFileUploads, DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
+-import { DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsSessionsWindowContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
++import { IsEnabledFileDownloads, IsEnabledFileUploads, DirtyWorkingCopiesContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsSessionsWindowContext, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, ActiveEditorAvailableEditorIdsContext, MultipleEditorsSelectedInGroupContext, TwoEditorsSelectedInGroupContext, SelectedEditorsInGroupFileOrUntitledResourceContextKey } from '../../../common/contextkeys.js';
  import { IsWebContext } from '../../../../platform/contextkey/common/contextkeys.js';
  import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
  import { ThemeIcon } from '../../../../base/common/themables.js';
@@ -207,7 +207,7 @@ Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
-@@ -41,6 +41,9 @@ export const EmbedderIdentifierContext =
+@@ -40,6 +40,9 @@ export const EmbedderIdentifierContext =
  
  export const InAutomationContext = new RawContextKey<boolean>('inAutomation', false, localize('inAutomation', "Whether VS Code is running under automation/smoke test"));
  
@@ -230,7 +230,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
  import { IRemoteAgentService } from '../../remote/common/remoteAgentService.js';
  import { IContextKeyService, IContextKey, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
  import { equalsIgnoreCase, format, startsWithIgnoreCase } from '../../../../base/common/strings.js';
-@@ -144,7 +144,7 @@ export class SimpleFileDialog extends Di
+@@ -161,7 +161,7 @@ export class SimpleFileDialog extends Di
  		@IFileDialogService private readonly fileDialogService: IFileDialogService,
  		@IModelService private readonly modelService: IModelService,
  		@ILanguageService private readonly languageService: ILanguageService,
@@ -239,7 +239,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/dialogs/browser/simpleFi
  		@IRemoteAgentService private readonly remoteAgentService: IRemoteAgentService,
  		@IPathService protected readonly pathService: IPathService,
  		@IKeybindingService private readonly keybindingService: IKeybindingService,
-@@ -322,21 +322,23 @@ export class SimpleFileDialog extends Di
+@@ -392,21 +392,23 @@ export class SimpleFileDialog extends Di
  			this.filePickBox.placeholder = nls.localize('remoteFileDialog.placeholder', "Folder path");
  			this.filePickBox.ok = true;
  			this.filePickBox.okLabel = typeof this.options.openLabel === 'string' ? this.options.openLabel : this.options.openLabel?.withoutMnemonic;
