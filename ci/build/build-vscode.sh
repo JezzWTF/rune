@@ -47,7 +47,7 @@ main() {
   # not update when only our patch files change, and that will cause caching
   # issues where the browser keeps using outdated code.
   export BUILD_SOURCEVERSION
-  BUILD_SOURCEVERSION=$(git rev-parse HEAD)
+  BUILD_SOURCEVERSION=${BUILD_SOURCEVERSION:-$(git rev-parse HEAD)}
 
   pushd lib/vscode
 

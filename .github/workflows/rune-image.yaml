@@ -1,0 +1,103 @@
+name: Rune image
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".dockerignore"
+      - ".github/workflows/rune-image.yaml"
+      - "Dockerfile"
+      - "ci/build/**"
+      - "ci/release-image/**"
+      - "customization/**"
+      - "docker-compose.dev.yml"
+      - "lib/vscode"
+      - "package-lock.json"
+      - "package.json"
+      - "patches/**"
+      - "src/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".dockerignore"
+      - ".github/workflows/rune-image.yaml"
+      - "Dockerfile"
+      - "ci/build/**"
+      - "ci/release-image/**"
+      - "customization/**"
+      - "docker-compose.dev.yml"
+      - "lib/vscode"
+      - "package-lock.json"
+      - "package.json"
+      - "patches/**"
+      - "src/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  smoke:
+    name: Build and smoke test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          submodules: true
+
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+
+      - name: Build Rune image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: .
+          file: Dockerfile
+          load: true
+          tags: rune-ci:${{ github.sha }}
+          build-args: |
+            RUNE_SOURCE_REVISION=${{ github.sha }}
+            CODE_SERVER_VERSION=4.123.0
+            VSCODE_VERSION=1.123.0
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify Rune login and health
+        run: ./ci/release-image/smoke-test.sh "rune-ci:${GITHUB_SHA}"
+
+      - name: Verify image metadata
+        run: |
+          test "$(docker image inspect --format '{{.Config.User}}' "rune-ci:${GITHUB_SHA}")" = coder
+          test "$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "rune-ci:${GITHUB_SHA}")" = "${GITHUB_SHA}"
+          test "$(docker image inspect --format '{{index .Config.Labels "io.rune.code-server.version"}}' "rune-ci:${GITHUB_SHA}")" = 4.123.0
+          test "$(docker image inspect --format '{{index .Config.Labels "io.rune.vscode.version"}}' "rune-ci:${GITHUB_SHA}")" = 1.123.0
+
+  arm64:
+    name: Validate linux/arm64 build
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          submodules: true
+
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+
+      - name: Build Rune image for Ampere hosts
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/arm64
+          tags: rune-ci:arm64-${{ github.sha }}
+          build-args: |
+            RUNE_SOURCE_REVISION=${{ github.sha }}
+            CODE_SERVER_VERSION=4.123.0
+            VSCODE_VERSION=1.123.0
+          cache-from: type=gha,scope=arm64
+          cache-to: type=gha,mode=max,scope=arm64
+          outputs: type=cacheonly
