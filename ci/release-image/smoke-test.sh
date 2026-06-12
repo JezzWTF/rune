@@ -22,7 +22,7 @@ base_url="http://127.0.0.1:${port}"
 ready=false
 
 for _ in $(seq 1 60); do
-  if health=$(curl --fail --silent "${base_url}/healthz" 2>/dev/null) \
+  if health=$(curl --fail --silent --connect-timeout 5 --max-time 10 "${base_url}/healthz" 2>/dev/null) \
     && jq -e '.status == "alive"' <<<"$health" >/dev/null; then
     ready=true
     break
@@ -35,10 +35,10 @@ if [[ $ready != true ]]; then
   exit 1
 fi
 
-health=$(curl --fail --silent "${base_url}/healthz")
+health=$(curl --fail --silent --connect-timeout 5 --max-time 10 "${base_url}/healthz")
 jq -e '.status == "alive"' <<<"$health" >/dev/null
 
-login=$(curl --fail --silent "${base_url}/login")
+login=$(curl --fail --silent --connect-timeout 5 --max-time 10 "${base_url}/login")
 grep -Fq '<title>Sign in - Rune IDE</title>' <<<"$login"
 grep -Fq 'Welcome to Rune IDE' <<<"$login"
 grep -Fq 'Workspace password' <<<"$login"
