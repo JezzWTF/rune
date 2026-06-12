@@ -2,7 +2,12 @@ services:
   rune-ide-dev:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
+      args:
+        RUNE_SOURCE_REVISION: ${RUNE_SOURCE_REVISION:-dev}
+        RUNE_SOURCE_URL: ${RUNE_SOURCE_URL:-}
+        CODE_SERVER_VERSION: ${CODE_SERVER_VERSION:-4.123.0}
+        VSCODE_VERSION: ${VSCODE_VERSION:-1.123.0}
     image: rune-ide-dev:local
     container_name: rune-ide-dev
     restart: unless-stopped
@@ -12,14 +17,3 @@ services:
       - "127.0.0.1:8484:8080"
     volumes:
       - "Z:/Coding:/home/coder/workspace"
-    command:
-      - --bind-addr
-      - 0.0.0.0:8080
-      - --auth
-      - password
-      - --app-name
-      - Rune IDE
-      - --welcome-text
-      - Welcome to Rune IDE
-      - --i18n
-      - /home/coder/customization/en.json

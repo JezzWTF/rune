@@ -23,13 +23,24 @@ For full workbench styling and AI UI, keep those as extensions so upstream rebas
 
 ## Docker dev launch
 
-Run a local dev instance without compiling the full fork:
+Build the canonical Rune image from this repository and run a local instance.
+The build uses the initialized, pinned `lib/vscode` checkout, applies
+`patches/series`, packages Rune, and
+copies the package and customization assets into a clean runtime stage:
 
 ```sh
 docker compose -f docker-compose.dev.yml up -d --build
 ```
 
+Initialize the pinned submodule before the first build:
+
+```sh
+git submodule update --init --recursive
+```
+
 Open `http://127.0.0.1:8484` and log in with the password from `RUNE_DEV_PASSWORD`.
+The image defaults to the Rune application name, welcome text, and English
+customization file, so Compose does not overlay or replace upstream files.
 
 To stop it:
 
