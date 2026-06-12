@@ -51,6 +51,15 @@ main() {
 
   pushd lib/vscode
 
+  local product_backup
+  product_backup=$(mktemp)
+  cp product.json "$product_backup"
+  restore_product() {
+    cp "$product_backup" product.json
+    rm -f "$product_backup"
+  }
+  trap restore_product EXIT
+
   if [[ ! ${VERSION-} ]]; then
     echo "VERSION not set. Please set before running this script:"
     echo "VERSION='0.0.0' npm run build:vscode"
@@ -64,7 +73,6 @@ main() {
   #
   # This needs to be done before building as Code will read this file and embed
   # it into the client-side code.
-  git checkout product.json             # Reset in case the script exited early.
   cp product.json product.original.json # Since jq has no inline edit.
   jq --slurp '.[0] * .[1]' product.original.json <(
     cat << EOF
@@ -116,7 +124,8 @@ EOF
   # Reset so if you develop after building you will not be stuck with the wrong
   # commit (the dev client will use `oss-dev` but the dev server will still use
   # product.json which will have `stable-$commit`).
-  git checkout product.json
+  restore_product
+  trap - EXIT
 
   popd
 

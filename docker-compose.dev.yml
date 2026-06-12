@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         RUNE_SOURCE_REVISION: ${RUNE_SOURCE_REVISION:-dev}
+        RUNE_SOURCE_URL: ${RUNE_SOURCE_URL:-}
         CODE_SERVER_VERSION: ${CODE_SERVER_VERSION:-4.123.0}
         VSCODE_VERSION: ${VSCODE_VERSION:-1.123.0}
     image: rune-ide-dev:local

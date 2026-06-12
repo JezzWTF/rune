@@ -59,9 +59,11 @@ jobs:
           context: .
           file: Dockerfile
           load: true
+          platforms: linux/amd64
           tags: rune-ci:${{ github.sha }}
           build-args: |
             RUNE_SOURCE_REVISION=${{ github.sha }}
+            RUNE_SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
             CODE_SERVER_VERSION=4.123.0
             VSCODE_VERSION=1.123.0
           cache-from: type=gha
@@ -96,6 +98,7 @@ jobs:
           tags: rune-ci:arm64-${{ github.sha }}
           build-args: |
             RUNE_SOURCE_REVISION=${{ github.sha }}
+            RUNE_SOURCE_URL=${{ github.server_url }}/${{ github.repository }}
             CODE_SERVER_VERSION=4.123.0
             VSCODE_VERSION=1.123.0
           cache-from: type=gha,scope=arm64

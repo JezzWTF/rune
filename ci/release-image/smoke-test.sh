@@ -3,7 +3,6 @@ set -euo pipefail
 
 image=${1:?usage: smoke-test.sh IMAGE}
 container="rune-image-smoke-${RANDOM}"
-port=${RUNE_SMOKE_PORT:-18080}
 password=${RUNE_SMOKE_PASSWORD:-rune-smoke-password}
 
 cleanup() {
@@ -13,22 +12,33 @@ trap cleanup EXIT
 
 docker run --detach \
   --name "$container" \
-  --publish "127.0.0.1:${port}:8080" \
+  --publish 127.0.0.1::8080 \
   --env "PASSWORD=${password}" \
   "$image" >/dev/null
 
+port=$(docker port "$container" 8080/tcp | sed -n 's/.*://p')
+test -n "$port"
+base_url="http://127.0.0.1:${port}"
+ready=false
+
 for _ in $(seq 1 60); do
-  if health=$(curl --fail --silent "http://127.0.0.1:${port}/healthz" 2>/dev/null) \
+  if health=$(curl --fail --silent "${base_url}/healthz" 2>/dev/null) \
     && jq -e '.status == "alive"' <<<"$health" >/dev/null; then
+    ready=true
     break
   fi
   sleep 2
 done
 
-health=$(curl --fail --silent "http://127.0.0.1:${port}/healthz")
+if [[ $ready != true ]]; then
+  docker logs "$container" >&2
+  exit 1
+fi
+
+health=$(curl --fail --silent "${base_url}/healthz")
 jq -e '.status == "alive"' <<<"$health" >/dev/null
 
-login=$(curl --fail --silent "http://127.0.0.1:${port}/login")
+login=$(curl --fail --silent "${base_url}/login")
 grep -Fq '<title>Sign in - Rune IDE</title>' <<<"$login"
 grep -Fq 'Welcome to Rune IDE' <<<"$login"
 grep -Fq 'Workspace password' <<<"$login"

@@ -7,10 +7,13 @@ FROM ${NODE_IMAGE} AS build
 
 ARG TARGETARCH
 ARG CODE_SERVER_VERSION=4.123.0
+ARG VSCODE_VERSION=1.123.0
 ARG RUNE_SOURCE_REVISION=unknown
+ARG DEBIAN_FRONTEND=noninteractive
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    DISABLE_V8_COMPILE_CACHE=1 \
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+ENV DISABLE_V8_COMPILE_CACHE=1 \
     ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
     PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
     npm_config_build_from_source=true
@@ -32,19 +35,22 @@ COPY . .
 
 RUN test -f lib/vscode/package.json \
   || { echo >&2 "lib/vscode is missing; initialize the pinned submodule before building"; exit 1; }
+RUN test "$(jq -r .version lib/vscode/package.json)" = "${VSCODE_VERSION}" \
+  || { echo >&2 "VSCODE_VERSION does not match the pinned lib/vscode version"; exit 1; }
+RUN grep -Fq "## [${CODE_SERVER_VERSION}]" CHANGELOG.md \
+  || { echo >&2 "CODE_SERVER_VERSION does not match CHANGELOG.md"; exit 1; }
 RUN quilt push -a
 
-# The build scripts restore files in the VS Code tree with git.  Docker build
-# contexts intentionally exclude repository metadata, so provide the minimal
-# local index they need after the pinned patches have been applied.
-RUN git init -q \
-  && git config user.name Rune \
-  && git config user.email build@rune.invalid \
-  && git add lib/vscode/product.json \
-  && git commit -qm "Track patched VS Code product metadata"
-
+# Match the upstream release build's VS Code bootstrap while avoiding test-only
+# dependencies in this production image build.
 RUN --mount=type=cache,target=/root/.npm \
-    SKIP_SUBMODULE_DEPS=1 npm ci \
+    cd lib/vscode/build \
+  && npm ci \
+  && cd .. \
+  && . ./build/azure-pipelines/linux/setup-env.sh \
+  && node build/npm/preinstall.ts \
+  && cd /src \
+  && SKIP_SUBMODULE_DEPS=1 npm ci \
   && cd lib/vscode \
   && npm ci
 
@@ -64,17 +70,18 @@ FROM ${RUNTIME_IMAGE} AS runtime
 ARG CODE_SERVER_VERSION=4.123.0
 ARG VSCODE_VERSION=1.123.0
 ARG RUNE_SOURCE_REVISION=unknown
+ARG RUNE_SOURCE_URL=""
+ARG DEBIAN_FRONTEND=noninteractive
 
 LABEL org.opencontainers.image.title="Rune IDE" \
       org.opencontainers.image.description="Rune's patched code-server and VS Code distribution" \
-      org.opencontainers.image.source="https://github.com/rune/rune" \
+      org.opencontainers.image.source="${RUNE_SOURCE_URL}" \
       org.opencontainers.image.revision="${RUNE_SOURCE_REVISION}" \
       org.opencontainers.image.version="${CODE_SERVER_VERSION}" \
       io.rune.code-server.version="${CODE_SERVER_VERSION}" \
       io.rune.vscode.version="${VSCODE_VERSION}"
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    HOME=/home/coder \
+ENV HOME=/home/coder \
     USER=coder \
     LANG=C.UTF-8
 
